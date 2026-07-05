@@ -1,0 +1,46 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Api", "src\Momentum.Api\Momentum.Api.csproj", "{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.SharedKernel", "src\Momentum.SharedKernel\Momentum.SharedKernel.csproj", "{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Infrastructure", "src\Momentum.Infrastructure\Momentum.Infrastructure.csproj", "{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.IntegrationTests", "tests\Momentum.IntegrationTests\Momentum.IntegrationTests.csproj", "{FF5B0A2E-AD3F-469D-BE7E-FD012C51DAA6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.UnitTests", "tests\Momentum.UnitTests\Momentum.UnitTests.csproj", "{8A065A12-BE6B-44BC-B098-A641EAB41192}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF5B0A2E-AD3F-469D-BE7E-FD012C51DAA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF5B0A2E-AD3F-469D-BE7E-FD012C51DAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF5B0A2E-AD3F-469D-BE7E-FD012C51DAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF5B0A2E-AD3F-469D-BE7E-FD012C51DAA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A065A12-BE6B-44BC-B098-A641EAB41192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A065A12-BE6B-44BC-B098-A641EAB41192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A065A12-BE6B-44BC-B098-A641EAB41192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A065A12-BE6B-44BC-B098-A641EAB41192}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
