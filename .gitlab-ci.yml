@@ -1,0 +1,73 @@
+# Stub pipeline: restore -> build -> test -> docker build/push.
+# Fill in registry/deploy specifics for your GitLab + ArgoCD setup.
+
+stages:
+  - restore
+  - build
+  - test
+  - package
+
+variables:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  # Set in the project's CI/CD variables (masked/protected), never in this file.
+  NUGET_SOURCE_URL: "$NUGET_SOURCE_URL"
+  NUGET_SOURCE_USERNAME: "$NUGET_SOURCE_USERNAME"
+  NUGET_SOURCE_PASSWORD: "$NUGET_SOURCE_PASSWORD"
+
+.dotnet_image: &dotnet_image
+  image: mcr.microsoft.com/dotnet/sdk:10.0
+
+restore:
+  <<: *dotnet_image
+  stage: restore
+  script:
+    - dotnet restore Momentum.sln
+  artifacts:
+    paths:
+      - .nuget/packages
+    expire_in: 1 hour
+
+build:
+  <<: *dotnet_image
+  stage: build
+  needs: ["restore"]
+  script:
+    - dotnet build Momentum.sln --configuration Release --no-restore
+  artifacts:
+    paths:
+      - "**/bin/"
+      - "**/obj/"
+    expire_in: 1 hour
+
+test:
+  <<: *dotnet_image
+  stage: test
+  needs: ["build"]
+  services:
+    - docker:dind # Testcontainers (integration tests) needs a Docker daemon.
+  script:
+    - dotnet test Momentum.sln --configuration Release --no-build --logger "junit;LogFilePath=test-results/{assembly}.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: "**/test-results/*.xml"
+
+docker-build-push:
+  stage: package
+  needs: ["test"]
+  image: docker:27
+  services:
+    - docker:27-dind
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - docker build
+      --build-arg NUGET_SOURCE_URL="$NUGET_SOURCE_URL"
+      --build-arg NUGET_SOURCE_USERNAME="$NUGET_SOURCE_USERNAME"
+      --build-arg NUGET_SOURCE_PASSWORD="$NUGET_SOURCE_PASSWORD"
+      -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+    # ArgoCD picks up the new tag via its own sync (image updater / manifest bump) — wire that separately.
