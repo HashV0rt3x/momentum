@@ -16,15 +16,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- CI: the junit logger used by dotnet test in .gitlab-ci.yml needs this package. -->
+    <PackageReference Include="JunitXml.TestLogger" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Momentum.SharedKernel\Momentum.SharedKernel.csproj" />
-    <!--
-      Add a ProjectReference to each module as its service/domain logic grows
-      unit tests (Phase 3 onward: Habits, Tasks, Journal, ...). Nothing here
-      needs to change for that beyond adding the reference.
-    -->
+    <ProjectReference Include="..\..\src\Momentum.Application\Momentum.Application.csproj" />
   </ItemGroup>
 
 </Project>

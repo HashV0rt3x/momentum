@@ -18,10 +18,11 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Momentum.SharedKernel\Momentum.SharedKernel.csproj" />
+    <ProjectReference Include="..\Momentum.Application\Momentum.Application.csproj" />
   </ItemGroup>
 
 </Project>

@@ -21,10 +21,9 @@ WORKDIR /src
 # every .csproj relies on them for TargetFramework and package versions.
 COPY NuGet.Config Directory.Build.props Directory.Packages.props ./
 COPY src/Momentum.Api/Momentum.Api.csproj src/Momentum.Api/
-COPY src/Momentum.SharedKernel/Momentum.SharedKernel.csproj src/Momentum.SharedKernel/
+COPY src/Momentum.Domain/Momentum.Domain.csproj src/Momentum.Domain/
+COPY src/Momentum.Application/Momentum.Application.csproj src/Momentum.Application/
 COPY src/Momentum.Infrastructure/Momentum.Infrastructure.csproj src/Momentum.Infrastructure/
-# NOTE: add every new Momentum.Modules.* project's .csproj COPY line here as
-# modules land (Phase 2+), alongside the ProjectReference in Momentum.Api.csproj.
 
 RUN dotnet restore src/Momentum.Api/Momentum.Api.csproj
 

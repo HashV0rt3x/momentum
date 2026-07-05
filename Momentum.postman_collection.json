@@ -1,0 +1,474 @@
+{
+  "info": {
+    "name": "Momentum API",
+    "description": "Chrono/Momentum backend. Login first (Auth folder) — tokens are saved to collection variables automatically and every protected request uses {{accessToken}}. Set {{baseUrl}} if not running on localhost:8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "taskId", "value": "" },
+    { "key": "subtaskId", "value": "" },
+    { "key": "projectId", "value": "" },
+    { "key": "categoryId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login — Telegram widget",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "uz" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/telegram", "host": ["{{baseUrl}}"], "path": ["auth", "telegram"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"widget\",\n  \"data\": {\n    \"id\": 123456789,\n    \"first_name\": \"Diyor\",\n    \"last_name\": \"Karimov\",\n    \"username\": \"diyor\",\n    \"photo_url\": \"https://t.me/i/userpic/320/x.jpg\",\n    \"auth_date\": 1719400000,\n    \"hash\": \"REPLACE_WITH_REAL_HASH\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Login — Telegram Mini App (initData)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/telegram", "host": ["{{baseUrl}}"], "path": ["auth", "telegram"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"webapp\",\n  \"initData\": \"REPLACE_WITH_REAL_INIT_DATA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login — bot 6-digit code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/telegram/code", "host": ["{{baseUrl}}"], "path": ["auth", "telegram", "code"] },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}" },
+            "description": "Send /start to the bot, it replies with a 6-digit code valid for 5 minutes."
+          }
+        },
+        {
+          "name": "Refresh tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "description": "Rotation: the old refresh token stops working immediately."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/me", "host": ["{{baseUrl}}"], "path": ["me"] }
+          }
+        },
+        {
+          "name": "Update me",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/me", "host": ["{{baseUrl}}"], "path": ["me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diyor K.\",\n  \"jobTitle\": \"Founder\",\n  \"timezone\": \"Asia/Tashkent\",\n  \"locale\": \"uz\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get settings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] }
+          }
+        },
+        {
+          "name": "Update settings",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/settings", "host": ["{{baseUrl}}"], "path": ["settings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"weekStart\": \"mon\",\n  \"timer\": { \"focus\": 50, \"shortBreak\": 10 },\n  \"notifications\": { \"focusReminders\": true, \"channel\": \"telegram\" }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Create category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('categoryId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"reading\",\n  \"color\": \"#37A8C9\",\n  \"icon\": \"BookOpen\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"color\": \"#3FB07E\",\n  \"icon\": \"GraduationCap\"\n}" }
+          }
+        },
+        {
+          "name": "Delete category",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List projects",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/projects", "host": ["{{baseUrl}}"], "path": ["projects"] }
+          }
+        },
+        {
+          "name": "Create project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('projectId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/projects", "host": ["{{baseUrl}}"], "path": ["projects"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Website Redesign\",\n  \"color\": \"#37A8C9\",\n  \"description\": \"Marketing refresh\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update project",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Website v3\",\n  \"isArchived\": true\n}" }
+          }
+        },
+        {
+          "name": "Delete project",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["projects", "{{projectId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List tasks (filters)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "status", "value": "todo", "description": "todo | in_progress | done", "disabled": true },
+                { "key": "priority", "value": "high", "description": "low | medium | high | urgent", "disabled": true },
+                { "key": "projectId", "value": "{{projectId}}", "disabled": true },
+                { "key": "assigneeId", "value": "", "disabled": true },
+                { "key": "categoryKey", "value": "deep_work", "disabled": true },
+                { "key": "dueBefore", "value": "2026-07-10T00:00:00Z", "disabled": true },
+                { "key": "q", "value": "design", "description": "search in title+description", "disabled": true },
+                { "key": "page", "value": "1", "description": "presence switches response to paginated shape", "disabled": true },
+                { "key": "pageSize", "value": "20", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get task",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Create task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('taskId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Write onboarding emails\",\n  \"description\": \"\",\n  \"status\": \"todo\",\n  \"priority\": \"medium\",\n  \"categoryKey\": \"work\",\n  \"tags\": [\"copy\"],\n  \"estimatedMinutes\": 90,\n  \"dueDate\": \"2026-07-06T00:00:00.000Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update task",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"done\",\n  \"priority\": \"urgent\"\n}" },
+            "description": "status:\"done\" sets completedAt server-side."
+          }
+        },
+        {
+          "name": "Delete task",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Add subtask",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('subtaskId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}/subtasks", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}", "subtasks"] },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Handoff to devs\"\n}" }
+          }
+        },
+        {
+          "name": "Update subtask",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}/subtasks/{{subtaskId}}", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}", "subtasks", "{{subtaskId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"done\": true\n}" }
+          }
+        },
+        {
+          "name": "Delete subtask",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/tasks/{{taskId}}/subtasks/{{subtaskId}}", "host": ["{{baseUrl}}"], "path": ["tasks", "{{taskId}}", "subtasks", "{{subtaskId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Focus Sessions",
+      "item": [
+        {
+          "name": "List sessions (today)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/focus-sessions?date=today",
+              "host": ["{{baseUrl}}"],
+              "path": ["focus-sessions"],
+              "query": [
+                { "key": "date", "value": "today", "description": "resolved in the user's timezone" },
+                { "key": "from", "value": "2026-07-01T00:00:00Z", "disabled": true },
+                { "key": "to", "value": "2026-07-08T00:00:00Z", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/focus-sessions", "host": ["{{baseUrl}}"], "path": ["focus-sessions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"focus\",\n  \"taskId\": null,\n  \"plannedMinutes\": 25,\n  \"completedMinutes\": 25,\n  \"completed\": true,\n  \"startedAt\": \"2026-07-05T08:10:00.000Z\"\n}"
+            },
+            "description": "type: focus | short_break | long_break. completed:false = aborted early."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ops",
+      "item": [
+        {
+          "name": "Health — live",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/health/live", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["health", "live"] }
+          }
+        },
+        {
+          "name": "Health — ready",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/health/ready", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["health", "ready"] }
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/metrics", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["metrics"] }
+          }
+        }
+      ]
+    }
+  ]
+}

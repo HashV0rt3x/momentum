@@ -5,7 +5,9 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Api", "src\Momentum.Api\Momentum.Api.csproj", "{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.SharedKernel", "src\Momentum.SharedKernel\Momentum.SharedKernel.csproj", "{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Domain", "src\Momentum.Domain\Momentum.Domain.csproj", "{C1D5A3E8-4B29-4F6D-9A17-52E80B6C3D41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Application", "src\Momentum.Application\Momentum.Application.csproj", "{E7F2B9C4-8D31-46A5-B2E9-90A4C7D5F162}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Momentum.Infrastructure", "src\Momentum.Infrastructure\Momentum.Infrastructure.csproj", "{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}"
 EndProject
@@ -23,10 +25,14 @@ Global
 		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{965D0C71-C2F6-4148-9F98-8AAE010E6BBE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{530DDE13-0FCF-43B0-A1BC-1BC0B133295B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1D5A3E8-4B29-4F6D-9A17-52E80B6C3D41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1D5A3E8-4B29-4F6D-9A17-52E80B6C3D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1D5A3E8-4B29-4F6D-9A17-52E80B6C3D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1D5A3E8-4B29-4F6D-9A17-52E80B6C3D41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7F2B9C4-8D31-46A5-B2E9-90A4C7D5F162}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7F2B9C4-8D31-46A5-B2E9-90A4C7D5F162}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7F2B9C4-8D31-46A5-B2E9-90A4C7D5F162}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7F2B9C4-8D31-46A5-B2E9-90A4C7D5F162}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DF4C552-BB76-4370-BEDF-2330BE2FFE7D}.Release|Any CPU.ActiveCfg = Release|Any CPU

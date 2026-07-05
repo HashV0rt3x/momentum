@@ -4,18 +4,20 @@ using FluentValidation;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Momentum.Api.Endpoints;
 using Momentum.Api.ExceptionHandling;
 using Momentum.Api.Security;
+using Momentum.Application.Common.Security;
+using Momentum.Application.Users;
 using Momentum.Infrastructure;
 using Momentum.Infrastructure.Persistence;
-using Momentum.SharedKernel.Modules;
-using Momentum.SharedKernel.Security;
 using Prometheus;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -41,44 +43,21 @@ try
         .Enrich.WithThreadId()
         .WriteTo.Console(new CompactJsonFormatter()));
 
-    // ---- Infrastructure (DbContext, Identity core, base health checks) ----
+    // ---- Infrastructure (DbContext, Identity core, auth/user services, base health checks) ----
     builder.Services.AddInfrastructure(builder.Configuration);
 
     // ---- Current-user accessor: one HttpContext-backed instance serving both
-    // the strict module-facing ICurrentUser and the lenient ICurrentUserAccessor
-    // that AppDbContext's global query filter uses. ----
+    // the strict application-facing ICurrentUser and the lenient
+    // ICurrentUserAccessor that AppDbContext's global query filter uses. ----
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<CurrentUser>();
     builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
     builder.Services.Replace(ServiceDescriptor.Scoped<ICurrentUserAccessor>(sp => sp.GetRequiredService<CurrentUser>()));
 
-    // ---- Module discovery & registration ----
-    // Phase 1 ships no modules yet, so this discovers an empty list — the loop
-    // below is future-proofing, not dead code. See ModuleAssemblyScanner's doc
-    // comment for how a new module gets picked up with zero changes here.
-    var enabledModules = builder.Configuration["Modules:Enabled"]
-        ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    // FluentValidation: scan the Application assembly for IValidator<T> implementations.
+    builder.Services.AddValidatorsFromAssembly(typeof(IUserService).Assembly);
 
-    var modules = ModuleAssemblyScanner.DiscoverModules(enabledModules);
-
-    Log.Information(
-        "Discovered {ModuleCount} module(s): {Modules}",
-        modules.Count,
-        modules.Select(m => m.Name).ToArray());
-
-    foreach (var module in modules)
-    {
-        module.AddServices(builder.Services, builder.Configuration);
-    }
-
-    // FluentValidation: scan SharedKernel + every module assembly for IValidator<T> implementations.
-    builder.Services.AddValidatorsFromAssembly(typeof(IModule).Assembly);
-    foreach (var moduleAssembly in ModuleAssemblyScanner.GetModuleAssemblies())
-    {
-        builder.Services.AddValidatorsFromAssembly(moduleAssembly);
-    }
-
-    // ---- Error handling (RFC 7807 ProblemDetails everywhere) ----
+    // ---- Error handling (spec error shape everywhere) ----
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<AppExceptionHandler>();
 
@@ -86,6 +65,14 @@ try
     var jwtSection = builder.Configuration.GetSection("Jwt");
     var jwtSecret = jwtSection["Secret"]
         ?? throw new InvalidOperationException("Missing configuration 'Jwt:Secret' (env: Jwt__Secret).");
+
+    // Fail fast at startup instead of at first token signing: HS256 requires a key
+    // of at least 256 bits (32 bytes).
+    if (Encoding.UTF8.GetByteCount(jwtSecret) < 32)
+    {
+        throw new InvalidOperationException(
+            "'Jwt:Secret' must be at least 32 bytes (256 bits) for HMAC-SHA256. Generate one with: openssl rand -base64 48");
+    }
 
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -121,17 +108,34 @@ try
         });
     });
 
-    // ---- Rate limiting (modules apply .RequireRateLimiting("auth") to sensitive endpoints) ----
+    // ---- Reverse-proxy awareness: the container serves plain HTTP behind a
+    // TLS-terminating proxy, so trust X-Forwarded-For/Proto — otherwise
+    // UseHttpsRedirection loops and the rate limiter / logs see the proxy's IP
+    // instead of the client's. KnownNetworks/Proxies are cleared because the
+    // proxy's address isn't known here; restrict them if it ever is. ----
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+
+    // ---- Rate limiting (auth endpoints apply .RequireRateLimiting("auth")).
+    // Partitioned per client IP: one abusive client must not exhaust the login
+    // budget for everyone. ----
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        options.AddFixedWindowLimiter("auth", limiterOptions =>
-        {
-            limiterOptions.PermitLimit = 10;
-            limiterOptions.Window = TimeSpan.FromMinutes(1);
-            limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-            limiterOptions.QueueLimit = 0;
-        });
+        options.AddPolicy("auth", httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0,
+                }));
     });
 
     // ---- Health checks (liveness has no dependencies; readiness checks Postgres — added in AddInfrastructure) ----
@@ -179,13 +183,16 @@ try
         Log.Information("Database migrations applied.");
     }
 
+    // Must run before anything that inspects scheme or client IP
+    // (HTTPS redirection, HSTS, rate limiting, request logging).
+    app.UseForwardedHeaders();
+
     app.UseSerilogRequestLogging();
 
     app.UseExceptionHandler();
 
     // Swagger is left on in every environment: this is a personal, non-public app
-    // meant to sit behind its own auth and network controls, and the brief asks
-    // to "show it running behind Swagger".
+    // meant to sit behind its own auth and network controls.
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -219,10 +226,15 @@ try
 
     app.MapMetrics("/metrics");
 
-    foreach (var module in modules)
-    {
-        module.MapEndpoints(app);
-    }
+    // ---- API v1 (spec base path) ----
+    var api = app.MapGroup("/api/v1");
+    AuthEndpoints.Map(api);
+    UserEndpoints.Map(api);
+    SettingsEndpoints.Map(api);
+    CategoryEndpoints.Map(api);
+    ProjectEndpoints.Map(api);
+    TaskEndpoints.Map(api);
+    FocusSessionEndpoints.Map(api);
 
     app.Run();
 }

@@ -1,15 +1,15 @@
 using System.Security.Claims;
+using Momentum.Application.Common.Security;
 using Momentum.Infrastructure.Persistence;
-using Momentum.SharedKernel.Security;
 
 namespace Momentum.Api.Security;
 
 /// <summary>
 /// Single HttpContext-backed implementation satisfying both the strict,
-/// module-facing <see cref="ICurrentUser"/> (throws when unauthenticated) and the
-/// lenient <see cref="ICurrentUserAccessor"/> used by AppDbContext's query filter
-/// (returns null when unauthenticated). Registered once, resolved as both
-/// interfaces from the same scoped instance — see Program.cs.
+/// application-facing <see cref="ICurrentUser"/> (throws when unauthenticated)
+/// and the lenient <see cref="ICurrentUserAccessor"/> used by AppDbContext's
+/// query filter (returns null when unauthenticated). Registered once, resolved
+/// as both interfaces from the same scoped instance — see Program.cs.
 /// </summary>
 public sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser, ICurrentUserAccessor
 {

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Momentum.Application</RootNamespace>
+    <AssemblyName>Momentum.Application</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Momentum.Domain\Momentum.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -5,49 +5,53 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-momentum}
-      POSTGRES_USER: ${POSTGRES_USER:-momentum}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: momentum
+      POSTGRES_USER: momentum
+      POSTGRES_PASSWORD: momentum
     volumes:
       - momentum-postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Bound to loopback only: reachable from the host for local tooling
+      # (psql, IDE), but never exposed to the network.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-momentum} -d ${POSTGRES_DB:-momentum}"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 10s
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-momentum};Username=${POSTGRES_USER:-momentum};Password=${POSTGRES_PASSWORD:-change-me}
-      Jwt__Secret: ${Jwt__Secret}
-      Jwt__Issuer: ${Jwt__Issuer:-momentum-api}
-      Jwt__Audience: ${Jwt__Audience:-momentum-client}
-      Jwt__AccessMinutes: ${Jwt__AccessMinutes:-15}
-      Jwt__RefreshDays: ${Jwt__RefreshDays:-30}
-      Cors__Origins: ${Cors__Origins:-}
-      Telegram__BotToken: ${Telegram__BotToken:-}
-      Modules__Enabled: ${Modules__Enabled:-}
-      Database__MigrateOnStartup: "true"
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health/live"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+#
+#  api:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    restart: unless-stopped
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    environment:
+#      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+#      ASPNETCORE_URLS: http://+:8080
+#      ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-momentum};Username=${POSTGRES_USER:-momentum};Password=${POSTGRES_PASSWORD:-change-me}
+#      # :?  makes compose fail fast with a clear message instead of booting the
+#      # API with an empty secret (which would crash at startup anyway).
+#      Jwt__Secret: ${Jwt__Secret:?Jwt__Secret is required — set it in .env (openssl rand -base64 48)}
+#      Jwt__Issuer: ${Jwt__Issuer:-momentum-api}
+#      Jwt__Audience: ${Jwt__Audience:-momentum-client}
+#      Jwt__AccessMinutes: ${Jwt__AccessMinutes:-15}
+#      Jwt__RefreshDays: ${Jwt__RefreshDays:-30}
+#      Cors__Origins: ${Cors__Origins:-}
+#      Telegram__BotToken: ${Telegram__BotToken:-}
+#      Telegram__BotUsername: ${Telegram__BotUsername:-}
+#      Database__MigrateOnStartup: ${Database__MigrateOnStartup:-true}
+#    ports:
+#      - "8080:8080"
+#    healthcheck:
+#      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health/live"]
+#      interval: 15s
+#      timeout: 5s
+#      retries: 5
+#      start_period: 30s
 
 volumes:
   momentum-postgres-data:

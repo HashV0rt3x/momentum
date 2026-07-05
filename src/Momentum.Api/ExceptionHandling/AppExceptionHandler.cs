@@ -1,39 +1,34 @@
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Momentum.SharedKernel.Exceptions;
+using Momentum.Application.Common.Exceptions;
 
 namespace Momentum.Api.ExceptionHandling;
 
 /// <summary>
 /// Single place every unhandled exception in the pipeline funnels through,
-/// producing an RFC 7807 ProblemDetails response. Recognized <see cref="AppException"/>
-/// subclasses map to their declared status code with their message as the title;
-/// anything else becomes a generic 500 with no internal detail leaked. Registered
-/// via builder.Services.AddExceptionHandler&lt;AppExceptionHandler&gt;() and
-/// activated by app.UseExceptionHandler() in Program.cs.
+/// producing the API spec's error shape:
+///   { "status": 400, "message": "...", "code": "VALIDATION_ERROR", "errors": {...}? }
+/// Recognized <see cref="AppException"/> subclasses map to their declared status
+/// code; anything else becomes a generic 500 with no internal detail leaked.
 /// </summary>
-public sealed class AppExceptionHandler(
-    IProblemDetailsService problemDetailsService,
-    ILogger<AppExceptionHandler> logger) : IExceptionHandler
+public sealed class AppExceptionHandler(ILogger<AppExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var problemDetails = new ProblemDetails
-        {
-            Instance = httpContext.Request.Path,
-        };
+        int status;
+        string message;
+        string code;
+        IReadOnlyDictionary<string, string[]>? errors = null;
 
         switch (exception)
         {
             case AppValidationException validationException:
-                problemDetails.Status = validationException.StatusCode;
-                problemDetails.Title = validationException.Message;
-                problemDetails.Type = $"https://httpstatuses.io/{validationException.StatusCode}";
-                problemDetails.Extensions["code"] = validationException.Code;
-                problemDetails.Extensions["errors"] = validationException.Errors;
+                status = validationException.StatusCode;
+                message = validationException.Message;
+                code = validationException.Code;
+                errors = validationException.Errors;
                 logger.LogWarning(
                     "Validation failed for {Method} {Path}: {@Errors}",
                     httpContext.Request.Method,
@@ -42,22 +37,22 @@ public sealed class AppExceptionHandler(
                 break;
 
             case AppException appException:
-                problemDetails.Status = appException.StatusCode;
-                problemDetails.Title = appException.Message;
-                problemDetails.Type = $"https://httpstatuses.io/{appException.StatusCode}";
-                problemDetails.Extensions["code"] = appException.Code;
+                status = appException.StatusCode;
+                message = appException.Message;
+                code = appException.Code;
                 logger.LogWarning(
                     appException,
-                    "Handled {ExceptionType} for {Method} {Path}",
+                    "Handled {ExceptionType} ({Code}) for {Method} {Path}",
                     appException.GetType().Name,
+                    appException.Code,
                     httpContext.Request.Method,
                     httpContext.Request.Path);
                 break;
 
             default:
-                problemDetails.Status = StatusCodes.Status500InternalServerError;
-                problemDetails.Title = "An unexpected error occurred.";
-                problemDetails.Type = "https://httpstatuses.io/500";
+                status = StatusCodes.Status500InternalServerError;
+                message = "An unexpected error occurred.";
+                code = "INTERNAL_ERROR";
                 logger.LogError(
                     exception,
                     "Unhandled exception for {Method} {Path}",
@@ -66,13 +61,18 @@ public sealed class AppExceptionHandler(
                 break;
         }
 
-        httpContext.Response.StatusCode = problemDetails.Status!.Value;
+        httpContext.Response.StatusCode = status;
 
-        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            Exception = exception,
-            ProblemDetails = problemDetails,
-        });
+        await httpContext.Response.WriteAsJsonAsync(
+            new ErrorResponse(status, message, code, errors),
+            cancellationToken);
+
+        return true;
     }
+
+    private sealed record ErrorResponse(
+        int Status,
+        string Message,
+        string Code,
+        IReadOnlyDictionary<string, string[]>? Errors);
 }

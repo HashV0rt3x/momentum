@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <!-- CI: the junit logger used by dotnet test in .gitlab-ci.yml needs this package. -->
+    <PackageReference Include="JunitXml.TestLogger" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-using Momentum.SharedKernel.Common;
+using Momentum.Application.Common;
 using Xunit;
 
 namespace Momentum.UnitTests.Common;

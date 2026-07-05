@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <!-- Required by dotnet-ef when this project is the startup project.
+         PrivateAssets keeps it out of the published output. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
@@ -22,14 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Momentum.SharedKernel\Momentum.SharedKernel.csproj" />
+    <ProjectReference Include="..\Momentum.Application\Momentum.Application.csproj" />
     <ProjectReference Include="..\Momentum.Infrastructure\Momentum.Infrastructure.csproj" />
-    <!--
-      Deliberately no ProjectReference to any Momentum.Modules.* project here yet —
-      Phase 1 ships zero modules. Starting Phase 2, every module project gets a
-      ProjectReference added here (so its DLL lands in this project's output folder
-      for ModuleAssemblyScanner to find); nothing else in this project changes.
-    -->
   </ItemGroup>
 
 </Project>

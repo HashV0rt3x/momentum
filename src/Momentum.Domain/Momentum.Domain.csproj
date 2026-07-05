@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Momentum.Domain</RootNamespace>
+    <AssemblyName>Momentum.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Innermost layer: entities, enums, domain rules. No dependencies. -->
+
+</Project>

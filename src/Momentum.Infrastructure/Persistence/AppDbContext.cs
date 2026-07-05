@@ -1,18 +1,21 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Momentum.Domain.Auth;
+using Momentum.Domain.Categories;
+using Momentum.Domain.Common;
+using Momentum.Domain.Focus;
+using Momentum.Domain.Projects;
+using Momentum.Domain.Settings;
+using Momentum.Domain.Tasks;
 using Momentum.Infrastructure.Identity;
-using Momentum.SharedKernel.Entities;
-using Momentum.SharedKernel.Modules;
 
 namespace Momentum.Infrastructure.Persistence;
 
 /// <summary>
-/// The one and only DbContext for the whole modular monolith (one deployable app,
-/// one DB, per the locked decisions). Modules never define their own DbContext —
-/// they bring EF entity configs (IEntityTypeConfiguration&lt;T&gt;) discovered here
-/// via <see cref="ModuleAssemblyScanner"/>, so this class needs zero changes when a
-/// new module is added.
+/// The one and only DbContext (one deployable app, one DB). Entity
+/// configurations live in Persistence/Configurations and are discovered via
+/// ApplyConfigurationsFromAssembly.
 /// </summary>
 public sealed class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
@@ -32,22 +35,31 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
         _timeProvider = timeProvider;
     }
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<TelegramLoginCode> TelegramLoginCodes => Set<TelegramLoginCode>();
+
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
+
+    public DbSet<Category> Categories => Set<Category>();
+
+    public DbSet<Project> Projects => Set<Project>();
+
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
+
+    public DbSet<FocusSession> FocusSessions => Set<FocusSession>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        foreach (var moduleAssembly in ModuleAssemblyScanner.GetModuleAssemblies())
-        {
-            builder.ApplyConfigurationsFromAssembly(moduleAssembly);
-        }
-
         // Defense-in-depth global filter: every IUserOwned entity type discovered
         // in the model is restricted to the current user's rows. This is NOT a
         // substitute for explicit `.Where(x => x.UserId == currentUser.UserId)` in
-        // module query code — see IUserOwned's doc comment — but it means a missed
-        // filter fails closed instead of leaking another user's data.
+        // application query code — see IUserOwned's doc comment — but it means a
+        // missed filter fails closed instead of leaking another user's data.
         foreach (var entityType in builder.Model.GetEntityTypes())
         {
             if (typeof(IUserOwned).IsAssignableFrom(entityType.ClrType) && entityType.ClrType.IsClass)
@@ -57,16 +69,19 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
         }
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    // Overriding the (bool, CancellationToken) overloads covers every save path:
+    // the parameterless/CT-only variants delegate to these in the base class, so
+    // timestamps are stamped no matter which overload a caller picks.
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         StampTimestamps();
-        return base.SaveChangesAsync(cancellationToken);
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
-    public override int SaveChanges()
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         StampTimestamps();
-        return base.SaveChanges();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
     private void StampTimestamps()
