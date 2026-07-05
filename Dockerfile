@@ -10,16 +10,6 @@ ARG DOTNET_RUNTIME_IMAGE=mcr.microsoft.com/dotnet/aspnet:10.0
 # ---------------------------------------------------------------------------
 FROM ${DOTNET_SDK_IMAGE} AS build
 
-# NuGet source is never hardcoded (see NuGet.Config) — it must be supplied at
-# build time so `dotnet restore` works air-gapped against your Nexus mirror:
-#   docker build --build-arg NUGET_SOURCE_URL=https://nexus.internal/repository/nuget-group/index.json .
-ARG NUGET_SOURCE_URL
-ARG NUGET_SOURCE_USERNAME=""
-ARG NUGET_SOURCE_PASSWORD=""
-ENV NUGET_SOURCE_URL=${NUGET_SOURCE_URL} \
-    NUGET_SOURCE_USERNAME=${NUGET_SOURCE_USERNAME} \
-    NUGET_SOURCE_PASSWORD=${NUGET_SOURCE_PASSWORD}
-
 WORKDIR /src
 
 # Copy only dependency-defining files first so `dotnet restore` is cached across

@@ -23,10 +23,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        NUGET_SOURCE_URL: ${NUGET_SOURCE_URL}
-        NUGET_SOURCE_USERNAME: ${NUGET_SOURCE_USERNAME:-}
-        NUGET_SOURCE_PASSWORD: ${NUGET_SOURCE_PASSWORD:-}
     restart: unless-stopped
     depends_on:
       postgres:

@@ -49,36 +49,19 @@ SDKs cannot build `net10.0` projects.
 - .NET 10 SDK
 - Docker + Docker Compose (for the Postgres container and/or running the API in
   a container)
-- Access to your Nexus mirror's NuGet feed (or `nuget.org` for local dev if Nexus
-  isn't reachable yet)
+- Internet access to `nuget.org` (see below — no Nexus mirror wired up currently)
 
-## NuGet source (air-gapped by design)
+## NuGet source
 
-`NuGet.Config` at the repo root has no source baked in — it reads `%NUGET_SOURCE_URL%`
-(and optional `%NUGET_SOURCE_USERNAME%`/`%NUGET_SOURCE_PASSWORD%`, expanded by NuGet
-itself, not by your shell). Before restoring:
-
-```bash
-export NUGET_SOURCE_URL="https://nexus.yourcompany.internal/repository/nuget-group/index.json"
-# or, for local dev with no Nexus available:
-export NUGET_SOURCE_URL="https://api.nuget.org/v3/index.json"
-
-dotnet restore Momentum.sln
-```
-
-If your feed requires auth, don't edit `NuGet.Config` — run this once locally (it
-writes to your user-level NuGet config, not the repo):
-
-```bash
-dotnet nuget update source Mirror --source "$NUGET_SOURCE_URL" \
-  --username "$NUGET_SOURCE_USERNAME" --password "$NUGET_SOURCE_PASSWORD" \
-  --store-password-in-clear-text --configfile NuGet.Config
-```
+`NuGet.Config` points straight at public `nuget.org` — no env var or setup needed,
+just `dotnet restore`. If this ever needs to run air-gapped against an internal
+Nexus mirror, swap the source URL in `NuGet.Config` (the repo's git history has an
+earlier version parameterized via a `%NUGET_SOURCE_URL%` env var, if useful as a
+starting point).
 
 Package versions are pinned centrally in `Directory.Packages.props`, targeting
-.NET 10 GA + contemporaneous ecosystem releases as of mid-2026. If your mirror only
-has older versions, that's the one file to edit — `dotnet restore` will report
-`NU1102` for anything it can't find.
+.NET 10 GA + contemporaneous ecosystem releases as of mid-2026. If `dotnet restore`
+reports `NU1102` for a specific version, that's the one file to edit.
 
 ## Local dev (no Docker)
 
@@ -101,7 +84,7 @@ has older versions, that's the one file to edit — `dotnet restore` will report
 
 ```bash
 cp .env.example .env
-# edit .env: at minimum set NUGET_SOURCE_URL and a real Jwt__Secret
+# edit .env: at minimum set a real Jwt__Secret
 
 docker compose up --build
 ```

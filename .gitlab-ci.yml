@@ -10,10 +10,6 @@ stages:
 variables:
   DOTNET_NOLOGO: "1"
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
-  # Set in the project's CI/CD variables (masked/protected), never in this file.
-  NUGET_SOURCE_URL: "$NUGET_SOURCE_URL"
-  NUGET_SOURCE_USERNAME: "$NUGET_SOURCE_USERNAME"
-  NUGET_SOURCE_PASSWORD: "$NUGET_SOURCE_PASSWORD"
 
 .dotnet_image: &dotnet_image
   image: mcr.microsoft.com/dotnet/sdk:10.0
@@ -62,11 +58,7 @@ docker-build-push:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - docker build
-      --build-arg NUGET_SOURCE_URL="$NUGET_SOURCE_URL"
-      --build-arg NUGET_SOURCE_USERNAME="$NUGET_SOURCE_USERNAME"
-      --build-arg NUGET_SOURCE_PASSWORD="$NUGET_SOURCE_PASSWORD"
-      -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push "$CI_REGISTRY_IMAGE:latest"
