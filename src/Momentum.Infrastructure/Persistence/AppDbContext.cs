@@ -36,10 +36,6 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     {
         base.OnModelCreating(builder);
 
-        // Identity's own tables get a shorter, explicit schema-friendly prefix so
-        // they're easy to spot alongside module tables in the same database.
-        builder.Entity<ApplicationUser>().ToTable("AspNetUsers");
-
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         foreach (var moduleAssembly in ModuleAssemblyScanner.GetModuleAssemblies())
