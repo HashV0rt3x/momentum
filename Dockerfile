@@ -27,6 +27,8 @@ WORKDIR /src
 # Momentum.Api's own dependency graph (itself + SharedKernel + Infrastructure +
 # whatever modules it references) — NOT the whole .sln — so a production image
 # never needs test-only packages (Testcontainers, xunit, ...) or their sources.
+# Directory.Build.props / Directory.Packages.props MUST be copied before restore —
+# every .csproj relies on them for TargetFramework and package versions.
 COPY NuGet.Config Directory.Build.props Directory.Packages.props ./
 COPY src/Momentum.Api/Momentum.Api.csproj src/Momentum.Api/
 COPY src/Momentum.SharedKernel/Momentum.SharedKernel.csproj src/Momentum.SharedKernel/
