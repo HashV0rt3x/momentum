@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>Momentum.Api</RootNamespace>
+    <AssemblyName>Momentum.Api</AssemblyName>
+    <UserSecretsId>momentum-api</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Process" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="prometheus-net.AspNetCore" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Momentum.SharedKernel\Momentum.SharedKernel.csproj" />
+    <ProjectReference Include="..\Momentum.Infrastructure\Momentum.Infrastructure.csproj" />
+    <!--
+      Deliberately no ProjectReference to any Momentum.Modules.* project here yet —
+      Phase 1 ships zero modules. Starting Phase 2, every module project gets a
+      ProjectReference added here (so its DLL lands in this project's output folder
+      for ModuleAssemblyScanner to find); nothing else in this project changes.
+    -->
+  </ItemGroup>
+
+</Project>
