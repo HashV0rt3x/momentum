@@ -191,10 +191,13 @@ try
 
     app.UseExceptionHandler();
 
-    // Swagger is left on in every environment: this is a personal, non-public app
-    // meant to sit behind its own auth and network controls.
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger: on in Development, off in Production unless explicitly enabled
+    // via Swagger__Enabled=true (handy on a private server behind a proxy).
+    if (app.Environment.IsDevelopment() || app.Configuration.GetValue("Swagger:Enabled", defaultValue: false))
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
     if (!app.Environment.IsDevelopment())
     {
