@@ -23,19 +23,20 @@ ENV NUGET_SOURCE_URL=${NUGET_SOURCE_URL} \
 WORKDIR /src
 
 # Copy only dependency-defining files first so `dotnet restore` is cached across
-# builds that don't change references/versions.
-COPY NuGet.Config Directory.Build.props Directory.Packages.props Momentum.sln ./
+# builds that don't change references/versions. Deliberately restoring only
+# Momentum.Api's own dependency graph (itself + SharedKernel + Infrastructure +
+# whatever modules it references) — NOT the whole .sln — so a production image
+# never needs test-only packages (Testcontainers, xunit, ...) or their sources.
+COPY NuGet.Config Directory.Build.props Directory.Packages.props ./
 COPY src/Momentum.Api/Momentum.Api.csproj src/Momentum.Api/
 COPY src/Momentum.SharedKernel/Momentum.SharedKernel.csproj src/Momentum.SharedKernel/
 COPY src/Momentum.Infrastructure/Momentum.Infrastructure.csproj src/Momentum.Infrastructure/
-COPY tests/Momentum.IntegrationTests/Momentum.IntegrationTests.csproj tests/Momentum.IntegrationTests/
-COPY tests/Momentum.UnitTests/Momentum.UnitTests.csproj tests/Momentum.UnitTests/
 # NOTE: add every new Momentum.Modules.* project's .csproj COPY line here as
 # modules land (Phase 2+), alongside the ProjectReference in Momentum.Api.csproj.
 
-RUN dotnet restore Momentum.sln
+RUN dotnet restore src/Momentum.Api/Momentum.Api.csproj
 
-COPY . .
+COPY src/ src/
 
 RUN dotnet publish src/Momentum.Api/Momentum.Api.csproj \
     --configuration Release \
