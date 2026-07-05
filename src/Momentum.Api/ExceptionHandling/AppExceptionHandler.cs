@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Momentum.SharedKernel.Exceptions;
 
 namespace Momentum.Api.ExceptionHandling;

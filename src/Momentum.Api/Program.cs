@@ -16,6 +16,7 @@ using Momentum.Infrastructure;
 using Momentum.Infrastructure.Persistence;
 using Momentum.SharedKernel.Modules;
 using Momentum.SharedKernel.Security;
+using Prometheus;
 using Serilog;
 using Serilog.Formatting.Compact;
 
